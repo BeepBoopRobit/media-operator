@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr-deployment
+  
+  labels:
+    app: sonarr
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      annotations:
+        backup.velero.io/backup-volumes: config
+      labels:
+        app: sonarr
+    spec:
+      containers:
+      - image: hotio/sonarr:release
+        name: sonarr
+        env:
+        - name: TZ
+          value: America/Chicago
+        lifecycle:
+          postStart:
+            exec:
+              command: ["update-ca-certificates"]
+        ports:
+        - containerPort: 8989
+        volumeMounts:
+        - mountPath: /config
+          name: config
+        - mountPath: /downloads/nzbs 
+          name: downloads-nzb
+        - mountPath: /downloads/torrents
+          name: downloads-torrent
+        - mountPath: /tv
+          name: tv
+        # - mountPath: /scripts
+        #   name: scripts
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: sonarr-config-pvc
+      - name: downloads-nzb
+        nfs:
+          server: 192.168.1.11
+          path: /volume1/ssd_nfs/downloads/nzbs
+      - name: downloads-torrent
+        nfs:
+          server: 192.168.1.11
+          path: /volume1/ssd_nfs/downloads/torrents
+      - name: tv
+        nfs:
+          server: 192.168.1.11
+          path: /volume1/ssd_nfs/Media/TV

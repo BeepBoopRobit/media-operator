@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jackett-deployment
+  labels:
+    app: jackett
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jackett
+  template:
+    metadata:
+      annotations:
+        backup.velero.io/backup-volumes: config
+      labels:
+        app: jackett
+    spec:
+      containers:
+      - image: hotio/jackett:latest 
+        name: jackett
+        volumeMounts:
+        - mountPath: /config
+          name: config
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: jackett-config-pvc

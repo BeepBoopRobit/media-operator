@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    metallb.universe.tf/allow-shared-ip: rutorrent
+  labels:
+    run: rutorrent
+  name: rutorrent-tcp
+  namespace: default
+spec:
+  ports:
+  - name: port-1
+    port: 80
+  - name: port-2
+    port: 5000
+  - name: port-3
+    port: 51413
+  selector:
+    run: rutorrent
+  type: LoadBalancer
